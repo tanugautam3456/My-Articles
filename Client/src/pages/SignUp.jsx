@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, Label, TextInput,Alert, Spinner } from 'flowbite-react'
+import { useDispatch, useSelector } from 'react-redux'
+import { signInFailure,signInStart,signInSuccess } from '../redux/user/UserSlice'
 
 function signUp() {
-  const[loading,setLoading]=useState(false)
-  const[errorMessage,seterrorMessage]=useState(null)
+  const {loading,error:errorMessage} = useSelector((state)=> state.user)
+  const dispatch=useDispatch();
 
   const [formData, setFormData]= useState({})
   const Navigate= useNavigate()
@@ -20,8 +22,7 @@ function signUp() {
       return seterrorMessage("All fields are required")
     }
     try {
-      seterrorMessage(null)
-      setLoading(true)
+      dispatch(signInStart())
       const res = await fetch('/api/auth/signin',{
 
         method:'POST',
@@ -32,17 +33,17 @@ function signUp() {
       // console.log(res)
       const data = await res.json()
       if(data.success ===false){
-        return seterrorMessage(data.message)
+        return dispatch(signInFailure(data.message))
       }
-      setLoading(false)
+      
 
       if(res.ok){
+        dispatch(signInSuccess(data))
         Navigate("/")
       }
 
     } catch (error) {
-      seterrorMessage(error.message)
-      setLoading(false)
+      dispatch(signInFailure(error.message))
     }
   }
   return (
